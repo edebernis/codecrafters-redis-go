@@ -56,7 +56,7 @@ func handleConnection(conn net.Conn) {
 	}
 }
 
-func (h *handler) handleCommand(input []byte) error {
+func (h *handler) handleCommand(input string) error {
 	cmd := strings.Trim(input, "\r\n")
 
 	if strings.ToLower(cmd) == "ping" {
