@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"io"
 	"log"
 	"net"
 )
@@ -19,6 +21,12 @@ func main() {
 		}
 
 		go func(c net.Conn) {
+			input, err := io.ReadAll(c)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(string(input))
+
 			if _, err := c.Write([]byte("+PONG\r\n")); err != nil {
 				log.Fatal(err)
 			}
