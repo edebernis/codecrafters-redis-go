@@ -28,13 +28,17 @@ func main() {
 	}
 }
 
+type handler struct {
+	conn net.Conn
+}
+
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 
 	timeoutDuration := 5 * time.Second
 	bufReader := bufio.NewReader(conn)
+	handler := &handler{conn: conn}
 
-	var cmd []string
 	for {
 		conn.SetReadDeadline(time.Now().Add(timeoutDuration))
 
@@ -46,18 +50,19 @@ func handleConnection(conn net.Conn) {
 			log.Fatal(err)
 		}
 
-		input := strings.Trim(string(bytes), "\r\n")
-		cmd = append(cmd, input)
-	}
-
-	if err := handleCommand(conn, cmd); err != nil {
-		fmt.Println(err)
+		if err := handler.handleCommand(bytes); err != nil {
+			fmt.Println(err)
+		}
 	}
 }
 
-func handleCommand(conn net.Conn, cmd []string) error {
-	if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
-		return err
+func (h *handler) handleCommand(cmd []byte) error {
+	cmd := strings.Trim(string(cmd), "\r\n"))
+
+	if strings.ToLower(cmd) == "ping" {
+		if _, err := h.conn.Write([]byte("+PONG\r\n")); err != nil {
+			return err
+		}
 	}
 
 	return nil
