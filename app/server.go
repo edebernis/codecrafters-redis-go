@@ -1,21 +1,28 @@
 package main
 
 import (
-	"fmt"
+	"io"
+	"log"
 	"net"
-	"os"
 )
 
 func main() {
-	l, err := net.Listen("tcp", "0.0.0.0:6379")
+	l, err := net.Listen("tcp", ":6379")
 	if err != nil {
-		fmt.Println("failed to bind to port 6379: ", err.Error())
-		os.Exit(1)
+		log.Fatal(err)
 	}
+	defer l.Close()
 
-	_, err = l.Accept()
-	if err != nil {
-		fmt.Println("error accepting connection: ", err.Error())
-		os.Exit(1)
+	for {
+		conn, err = l.Accept()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		go func(c net.Conn) {
+			defer c.Close()
+
+			io.WriteString(c, "+PONG\r\n")
+		}(conn)
 	}
 }
