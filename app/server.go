@@ -50,7 +50,7 @@ func handleConnection(conn net.Conn) {
 }
 
 func handleCommand(conn net.Conn, cmd []byte) error {
-	fmt.Printf("Command: %s\n", cmd)
+	fmt.Printf("Command: %s", cmd)
 
 	if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
 		return err
