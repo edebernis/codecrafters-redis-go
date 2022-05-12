@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"strings"
 	"time"
 )
 
@@ -33,6 +34,7 @@ func handleConnection(conn net.Conn) {
 	timeoutDuration := 5 * time.Second
 	bufReader := bufio.NewReader(conn)
 
+	var cmd []string
 	for {
 		conn.SetReadDeadline(time.Now().Add(timeoutDuration))
 
@@ -44,15 +46,16 @@ func handleConnection(conn net.Conn) {
 			log.Fatal(err)
 		}
 
-		if err := handleCommand(conn, bytes); err != nil {
-			fmt.Println(err)
-		}
+		input := strings.Trim(string(bytes), "\r\n")
+		cmd = append(cmd, input)
+	}
+
+	if err := handleCommand(conn, cmd); err != nil {
+		fmt.Println(err)
 	}
 }
 
-func handleCommand(conn net.Conn, cmd []byte) error {
-	fmt.Printf("Command: %s", cmd)
-
+func handleCommand(conn net.Conn, cmd []string) error {
 	if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
 		return err
 	}
