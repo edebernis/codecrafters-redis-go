@@ -19,9 +19,11 @@ func main() {
 		}
 
 		go func(c net.Conn) {
-			defer c.Close()
+			if _, err := c.Write([]byte("+PONG\r\n")); err != nil {
+				log.Fatal(err)
+			}
 
-			c.Write([]byte("+PONG\r\n"))
+			c.Close()
 		}(conn)
 	}
 }
