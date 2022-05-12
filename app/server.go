@@ -41,6 +41,7 @@ func handleConnection(conn net.Conn) {
 			if errors.Is(err, io.EOF) {
 				break
 			}
+			fmt.Println(err)
 		}
 
 		if err := handleCommand(conn, bytes); err != nil {
