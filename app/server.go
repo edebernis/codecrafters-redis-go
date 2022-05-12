@@ -20,6 +20,8 @@ func main() {
 		}
 
 		go func(c net.Conn) {
+			defer c.Close()
+
 			io.WriteString(c, "+PONG\r\n")
 		}(conn)
 	}
