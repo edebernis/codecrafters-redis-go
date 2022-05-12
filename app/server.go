@@ -1,12 +1,11 @@
 package main
 
 import (
-	"bytes"
-	"errors"
+	"bufio"
 	"fmt"
-	"io"
 	"log"
 	"net"
+	"time"
 )
 
 func main() {
@@ -22,20 +21,27 @@ func main() {
 			log.Fatal(err)
 		}
 
-		go func(c net.Conn) {
-			defer c.Close()
+		go handleConnection(conn)
+	}
+}
 
-			if _, err := c.Write([]byte("+PONG\r\n")); err != nil {
-				log.Fatal(err)
-			}
+func handleConnection(conn net.Conn) {
+	defer c.Close()
 
-			var b bytes.Buffer
-			if _, err := io.Copy(&b, c); err != nil {
-				if !errors.Is(err, io.EOF) {
-					log.Fatal(err)
-				}
-			}
-			fmt.Println(b.String())
-		}(conn)
+	timeoutDuration := 5 * time.Second
+	bufReader := bufio.NewReader(conn)
+
+	for {
+		conn.SetReadDeadline(time.Now().Add(timeoutDuration))
+
+		bytes, err := bufReader.ReadBytes('\n')
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("%s\n", bytes)
+
+		if _, err := c.Write([]byte("+PONG\r\n")); err != nil {
+			log.Fatal(err)
+		}
 	}
 }
