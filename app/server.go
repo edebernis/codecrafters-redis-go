@@ -26,7 +26,7 @@ func main() {
 
 			var b bytes.Buffer
 			if _, err := io.Copy(&b, c); err != nil {
-				if !errors.Is(io.EOF) {
+				if !errors.Is(err, io.EOF) {
 					log.Fatal(err)
 				}
 			}
