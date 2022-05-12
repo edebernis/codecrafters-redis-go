@@ -1,11 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"errors"
+	"io"
 	"log"
 	"net"
-	"os"
-	"time"
 )
 
 func main() {
@@ -24,14 +24,10 @@ func main() {
 		go func(c net.Conn) {
 			defer c.Close()
 
-			if err := c.SetDeadline(time.Now().Add(time.Second * 5)); err != nil {
-				log.Fatal(err)
-			}
-
 			for {
-				var b []byte
-				if _, err := c.Read(b); err != nil {
-					if errors.Is(err, os.ErrDeadlineExceeded) {
+				var b bytes.Buffer
+				if _, err := io.Copy(&b, c); err != nil {
+					if errors.Is(err, io.EOF) {
 						break
 					}
 					log.Fatal(err)
