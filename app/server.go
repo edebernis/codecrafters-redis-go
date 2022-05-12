@@ -42,7 +42,7 @@ func handleConnection(conn net.Conn) {
 	for {
 		conn.SetReadDeadline(time.Now().Add(timeoutDuration))
 
-		bytes, err := bufReader.ReadBytes('\n')
+		input, err := bufReader.ReadString('\n')
 		if err != nil {
 			if errors.Is(err, io.EOF) {
 				break
@@ -50,14 +50,14 @@ func handleConnection(conn net.Conn) {
 			log.Fatal(err)
 		}
 
-		if err := handler.handleCommand(bytes); err != nil {
+		if err := handler.handleCommand(input); err != nil {
 			fmt.Println(err)
 		}
 	}
 }
 
 func (h *handler) handleCommand(input []byte) error {
-	cmd := strings.Trim(string(input), "\r\n")
+	cmd := strings.Trim(input, "\r\n")
 
 	if strings.ToLower(cmd) == "ping" {
 		if _, err := h.conn.Write([]byte("+PONG\r\n")); err != nil {
