@@ -57,7 +57,7 @@ func handleConnection(conn net.Conn) {
 }
 
 func (h *handler) handleCommand(cmd []byte) error {
-	cmd = strings.Trim(string(cmd), "\r\n"))
+	cmd = strings.Trim(string(cmd), "\r\n")
 
 	if strings.ToLower(cmd) == "ping" {
 		if _, err := h.conn.Write([]byte("+PONG\r\n")); err != nil {
