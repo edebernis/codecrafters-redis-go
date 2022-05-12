@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"errors"
 	"io"
 	"log"
 	"net"
@@ -24,18 +23,11 @@ func main() {
 		go func(c net.Conn) {
 			defer c.Close()
 
-			for {
-				var b bytes.Buffer
-				if _, err := io.Copy(&b, c); err != nil {
-					if errors.Is(err, io.EOF) {
-						break
-					}
-					log.Fatal(err)
-				}
+			var b bytes.Buffer
+			io.Copy(&b, c)
 
-				if _, err := c.Write([]byte("+PONG\r\n")); err != nil {
-					log.Fatal(err)
-				}
+			if _, err := c.Write([]byte("+PONG\r\n")); err != nil {
+				log.Fatal(err)
 			}
 		}(conn)
 	}
