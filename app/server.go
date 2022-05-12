@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net"
@@ -30,6 +31,7 @@ func main() {
 					log.Fatal(err)
 				}
 			}
+			fmt.Println(b.String())
 
 			if _, err := c.Write([]byte("+PONG\r\n")); err != nil {
 				log.Fatal(err)
