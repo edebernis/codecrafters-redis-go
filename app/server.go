@@ -28,7 +28,7 @@ func main() {
 }
 
 func handleConnection(conn net.Conn) {
-	defer c.Close()
+	defer conn.Close()
 
 	timeoutDuration := 5 * time.Second
 	bufReader := bufio.NewReader(conn)
