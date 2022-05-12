@@ -25,6 +25,10 @@ func main() {
 		go func(c net.Conn) {
 			defer c.Close()
 
+			if _, err := c.Write([]byte("+PONG\r\n")); err != nil {
+				log.Fatal(err)
+			}
+
 			var b bytes.Buffer
 			if _, err := io.Copy(&b, c); err != nil {
 				if !errors.Is(err, io.EOF) {
@@ -32,10 +36,6 @@ func main() {
 				}
 			}
 			fmt.Println(b.String())
-
-			if _, err := c.Write([]byte("+PONG\r\n")); err != nil {
-				log.Fatal(err)
-			}
 		}(conn)
 	}
 }
