@@ -14,7 +14,7 @@ func main() {
 	defer l.Close()
 
 	for {
-		conn, err = l.Accept()
+		conn, err := l.Accept()
 		if err != nil {
 			log.Fatal(err)
 		}
