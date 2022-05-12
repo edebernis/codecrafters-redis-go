@@ -25,7 +25,7 @@ func main() {
 		go func(c net.Conn) {
 			defer c.Close()
 
-			if err := c.SetDeadline(3 * time.Second); err != nil {
+			if err := c.SetDeadline(time.Now().Add(time.Second * 5)); err != nil {
 				log.Fatal(err)
 			}
 
