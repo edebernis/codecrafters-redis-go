@@ -2,7 +2,9 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"time"
@@ -36,12 +38,24 @@ func handleConnection(conn net.Conn) {
 
 		bytes, err := bufReader.ReadBytes('\n')
 		if err != nil {
-			log.Fatal(err)
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			fmt.Println(err)
 		}
-		fmt.Printf("%s\n", bytes)
 
-		if _, err := c.Write([]byte("+PONG\r\n")); err != nil {
-			log.Fatal(err)
+		if err := handleCommand(conn, bytes); err != nil {
+			fmt.Println(err)
 		}
 	}
+}
+
+func handleCommand(conn net.Conn, cmd []byte) error {
+	fmt.Printf("Command: %s\n", cmd)
+
+	if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
+		return err
+	}
+
+	return nil
 }
