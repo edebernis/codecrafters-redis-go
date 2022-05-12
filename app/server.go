@@ -20,9 +20,10 @@ func main() {
 		}
 
 		go func(c net.Conn) {
+			defer c.Close()
+
 			var b []byte
-			_, err := c.Read(b)
-			if err != nil {
+			if _, err := c.Read(b); err != nil {
 				log.Fatal(err)
 			}
 			fmt.Println(string(b))
@@ -30,8 +31,6 @@ func main() {
 			if _, err := c.Write([]byte("+PONG\r\n")); err != nil {
 				log.Fatal(err)
 			}
-
-			c.Close()
 		}(conn)
 	}
 }
