@@ -84,7 +84,7 @@ func (h *handler) handleInput(input string) error {
 		return nil
 	}
 
-	if *h.bulkSize != len(input) {
+	if int(*h.bulkSize) != len(input) {
 		return fmt.Errorf("bulk string size is incorrect. Bulk size %d != input size %d", *h.bulkSize, len(input))
 	}
 
