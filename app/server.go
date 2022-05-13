@@ -57,22 +57,30 @@ func handleConnection(conn net.Conn) {
 }
 
 func (h *handler) handleInput(input string) error {
-	input := strings.TrimRight(input, "\r\n")
+	input = strings.TrimRight(input, "\r\n")
 
 	// First input of the command
 	if h.cmd == nil {
-		if input[0] != "*" {
+		if input[0] != '*' {
 			return errors.New("client must send a RESP array")
 		}
-		h.cmd = make([]string, 0, int(strconv.ParseInt(input[1:], 10, 32)))
+		len, err := strconv.ParseInt(input[1:], 10, 32)
+		if err != nil {
+			return fmt.Errorf("invalid array size %s: %w", input[1:], err)
+		}
+		h.cmd = make([]string, 0, int(len))
 		return nil
 	}
 
 	if h.bulkSize == nil {
-		if input[0] != "$" {
+		if input[0] != '$' {
 			return errors.New("RESP array must be contained of bulk strings only")
 		}
-		h.bulkSize = int(strconv.ParseInt(input[1:], 10, 32))
+		len, err := strconv.ParseInt(input[1:], 10, 32)
+		if err != nil {
+			return fmt.Errorf("invalid array size %s: %w", input[1:], err)
+		}
+		h.bulkSize = &int(len)
 		return nil
 	}
 
