@@ -7,8 +7,8 @@ import (
 	"io"
 	"log"
 	"net"
+	"strconv"
 	"strings"
-	"time"
 )
 
 func main() {
@@ -30,18 +30,18 @@ func main() {
 
 type handler struct {
 	conn net.Conn
+
+	cmd      []string
+	bulkSize *int
 }
 
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 
-	timeoutDuration := 5 * time.Second
 	bufReader := bufio.NewReader(conn)
 	handler := &handler{conn: conn}
 
 	for {
-		conn.SetReadDeadline(time.Now().Add(timeoutDuration))
-
 		input, err := bufReader.ReadString('\n')
 		if err != nil {
 			if errors.Is(err, io.EOF) {
@@ -50,20 +50,59 @@ func handleConnection(conn net.Conn) {
 			log.Fatal(err)
 		}
 
-		if err := handler.handleCommand(input); err != nil {
+		if err := handler.handleInput(input); err != nil {
 			fmt.Println(err)
 		}
 	}
 }
 
-func (h *handler) handleCommand(input string) error {
-	cmd := strings.Trim(input, "\r\n")
+func (h *handler) handleInput(input string) error {
+	input := strings.TrimRight(input, "\r\n")
 
-	if strings.ToLower(cmd) == "ping" {
+	// First input of the command
+	if h.cmd == nil {
+		if input[0] != "*" {
+			return errors.New("client must send a RESP array")
+		}
+		h.cmd = make([]string, 0, int(strconv.ParseInt(input[1:], 10, 32)))
+		return nil
+	}
+
+	if h.bulkSize == nil {
+		if input[0] != "$" {
+			return errors.New("RESP array must be contained of bulk strings only")
+		}
+		h.bulkSize = int(strconv.ParseInt(input[1:], 10, 32))
+		return nil
+	}
+
+	if h.bulkSize != len(input) {
+		return fmt.Errorf("bulk string size is incorrect. Bulk size %d != input size %d", *h.bulkSize, len(input))
+	}
+
+	h.cmd = append(h.cmd, input)
+	h.bulkSize = nil
+
+	// Array items remaining
+	if len(h.cmd) != cap(h.cmd) {
+		return nil
+	}
+
+	return h.doCommand()
+}
+
+func (h *handler) doCommand() error {
+	defer func() { h.cmd = nil }()
+
+	switch strings.ToLower(h.cmd[0]) {
+	case "ping":
 		if _, err := h.conn.Write([]byte("+PONG\r\n")); err != nil {
 			return err
 		}
+	case "echo":
+		if _, err := h.conn.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", len(h.cmd[1]), h.cmd[1]))); err != nil {
+			return err
+		}
 	}
-
 	return nil
 }
