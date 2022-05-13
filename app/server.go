@@ -32,7 +32,7 @@ type handler struct {
 	conn net.Conn
 
 	cmd      []string
-	bulkSize *int
+	bulkSize *int64
 }
 
 func handleConnection(conn net.Conn) {
@@ -64,7 +64,7 @@ func (h *handler) handleInput(input string) error {
 		if input[0] != '*' {
 			return errors.New("client must send a RESP array")
 		}
-		len, err := strconv.ParseInt(input[1:], 10, 32)
+		len, err := strconv.ParseInt(input[1:], 10, 64)
 		if err != nil {
 			return fmt.Errorf("invalid array size %s: %w", input[1:], err)
 		}
@@ -76,11 +76,11 @@ func (h *handler) handleInput(input string) error {
 		if input[0] != '$' {
 			return errors.New("RESP array must be contained of bulk strings only")
 		}
-		len, err := strconv.ParseInt(input[1:], 10, 32)
+		len, err := strconv.ParseInt(input[1:], 10, 64)
 		if err != nil {
 			return fmt.Errorf("invalid array size %s: %w", input[1:], err)
 		}
-		h.bulkSize = &(int(len))
+		h.bulkSize = &len
 		return nil
 	}
 
