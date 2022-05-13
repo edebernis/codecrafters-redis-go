@@ -80,11 +80,11 @@ func (h *handler) handleInput(input string) error {
 		if err != nil {
 			return fmt.Errorf("invalid array size %s: %w", input[1:], err)
 		}
-		h.bulkSize = &int(len)
+		h.bulkSize = &(int(len))
 		return nil
 	}
 
-	if h.bulkSize != len(input) {
+	if *h.bulkSize != len(input) {
 		return fmt.Errorf("bulk string size is incorrect. Bulk size %d != input size %d", *h.bulkSize, len(input))
 	}
 
