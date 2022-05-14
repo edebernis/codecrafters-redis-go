@@ -117,14 +117,14 @@ func (h *handler) doCommand() error {
 }
 
 func (h *handler) write(cmd string) error {
-	_, err := h.conn.Write([]byte{cmd + "\r\n"})
+	_, err := h.conn.Write([]byte(cmd + "\r\n"))
 	return err
 }
 
-func newSimpleString(str string) {
+func newSimpleString(str string) string {
 	return "+" + str
 }
 
-func newBulkString(str string) {
+func newBulkString(str string) string {
 	return fmt.Sprintf("$%d\r\n%s", len(str), str)
 }
