@@ -48,6 +48,7 @@ func main() {
 }
 
 type handler struct {
+	srv  *server
 	conn net.Conn
 
 	cmd      []string
@@ -58,7 +59,10 @@ func (s *server) handleConnection(conn net.Conn) {
 	defer conn.Close()
 
 	bufReader := bufio.NewReader(conn)
-	handler := &handler{conn: conn}
+	handler := &handler{
+		srv:  s,
+		conn: conn,
+	}
 
 	for {
 		input, err := bufReader.ReadString('\n')
@@ -130,6 +134,19 @@ func (h *handler) doCommand() error {
 		return h.write(
 			newBulkString(h.cmd[1]),
 		)
+	case "set":
+		h.srv.store[h.cmd[1]] = h.cmd[2]
+		return h.write(
+			newSimpleString("OK"),
+		)
+	case "get":
+		val, ok := h.srv.store[h.cmd[1]]
+		if !ok {
+			return h.write(newNull())
+		}
+		return h.write(
+			newBulkString(val),
+		)
 	default:
 		return fmt.Errorf("unknown command: %s", h.cmd)
 	}
@@ -146,4 +163,8 @@ func newSimpleString(str string) string {
 
 func newBulkString(str string) string {
 	return fmt.Sprintf("$%d\r\n%s", len(str), str)
+}
+
+func newNull() string {
+	return "$-1"
 }
