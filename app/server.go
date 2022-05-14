@@ -11,7 +11,21 @@ import (
 	"strings"
 )
 
-func main() {
+type value struct {
+	data string
+}
+
+type server struct {
+	store map[string]value
+}
+
+func newServer() *server {
+	return &server{
+		store: make(map[string]value),
+	}
+}
+
+func (s *server) run(address string) {
 	l, err := net.Listen("tcp", ":6379")
 	if err != nil {
 		log.Fatal(err)
@@ -24,8 +38,13 @@ func main() {
 			log.Fatal(err)
 		}
 
-		go handleConnection(conn)
+		go s.handleConnection(conn)
 	}
+}
+
+func main() {
+	s := newServer()
+	s.run(":6379")
 }
 
 type handler struct {
@@ -35,7 +54,7 @@ type handler struct {
 	bulkSize *int64
 }
 
-func handleConnection(conn net.Conn) {
+func (s *server) handleConnection(conn net.Conn) {
 	defer conn.Close()
 
 	bufReader := bufio.NewReader(conn)
