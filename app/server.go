@@ -135,7 +135,7 @@ func (h *handler) doCommand() error {
 			newBulkString(h.cmd[1]),
 		)
 	case "set":
-		h.srv.store[h.cmd[1]] = h.cmd[2]
+		h.srv.store[h.cmd[1]] = value{data: h.cmd[2]}
 		return h.write(
 			newSimpleString("OK"),
 		)
@@ -145,7 +145,7 @@ func (h *handler) doCommand() error {
 			return h.write(newNull())
 		}
 		return h.write(
-			newBulkString(val),
+			newBulkString(val.data),
 		)
 	default:
 		return fmt.Errorf("unknown command: %s", h.cmd)
