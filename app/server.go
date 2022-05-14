@@ -104,13 +104,27 @@ func (h *handler) doCommand() error {
 
 	switch strings.ToLower(h.cmd[0]) {
 	case "ping":
-		if _, err := h.conn.Write([]byte("+PONG\r\n")); err != nil {
-			return err
-		}
+		return h.write(
+			newSimpleString("PONG"),
+		)
 	case "echo":
-		if _, err := h.conn.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", len(h.cmd[1]), h.cmd[1]))); err != nil {
-			return err
-		}
+		return h.write(
+			newBulkString(h.cmd[1]),
+		)
+	default:
+		return fmt.Errorf("unknown command: %s", h.cmd)
 	}
-	return nil
+}
+
+func (h *handler) write(cmd string) error {
+	_, err := h.conn.Write([]byte{cmd + "\r\n"})
+	return err
+}
+
+func newSimpleString(str string) {
+	return "+" + str
+}
+
+func newBulkString(str string) {
+	return fmt.Sprintf("$%d\r\n%s", len(str), str)
 }
