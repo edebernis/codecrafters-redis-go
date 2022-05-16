@@ -13,8 +13,8 @@ import (
 )
 
 type value struct {
-	data       string
-	expiration time.Duration
+	data      string
+	expiredAt time.Time
 }
 
 type server struct {
@@ -137,19 +137,19 @@ func (h *handler) doCommand() error {
 			newBulkString(h.cmd[1]),
 		)
 	case "set":
-		var expiration time.Duration
+		var expiredAt time.Time
 		if len(h.cmd) >= 4 {
 			if strings.ToLower(h.cmd[3]) == "px" {
 				exp, err := time.ParseDuration(h.cmd[4] + "ms")
 				if err != nil {
 					return fmt.Errorf("failed to parse expiration duration: %w", err)
 				}
-				expiration = exp
+				expiredAt := time.Now().Add(exp)
 			}
 		}
 		h.srv.store[h.cmd[1]] = value{
-			data:       h.cmd[2],
-			expiration: expiration,
+			data:      h.cmd[2],
+			expiredAt: expiredAt,
 		}
 		return h.write(
 			newSimpleString("OK"),
@@ -157,6 +157,9 @@ func (h *handler) doCommand() error {
 	case "get":
 		val, ok := h.srv.store[h.cmd[1]]
 		if !ok {
+			return h.write(newNull())
+		}
+		if !val.expiredAt.IsZero() && time.Now().After(val.expiredAt) {
 			return h.write(newNull())
 		}
 		return h.write(
