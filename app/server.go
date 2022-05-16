@@ -140,10 +140,11 @@ func (h *handler) doCommand() error {
 		var expiration time.Duration
 		if len(h.cmd) >= 4 {
 			if strings.ToLower(h.cmd[3]) == "px" {
-				expiration, err := time.ParseDuration(h.cmd[4] + "ms")
+				exp, err := time.ParseDuration(h.cmd[4] + "ms")
 				if err != nil {
 					return fmt.Errorf("failed to parse expiration duration: %w", err)
 				}
+				expiration = exp
 			}
 		}
 		h.srv.store[h.cmd[1]] = value{
