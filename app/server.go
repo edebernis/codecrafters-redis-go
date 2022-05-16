@@ -144,7 +144,7 @@ func (h *handler) doCommand() error {
 				if err != nil {
 					return fmt.Errorf("failed to parse expiration duration: %w", err)
 				}
-				expiredAt := time.Now().Add(exp)
+				expiredAt = time.Now().Add(exp)
 			}
 		}
 		h.srv.store[h.cmd[1]] = value{
