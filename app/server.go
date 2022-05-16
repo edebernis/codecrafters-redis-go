@@ -9,10 +9,12 @@ import (
 	"net"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type value struct {
-	data string
+	data       string
+	expiration time.Duration
 }
 
 type server struct {
@@ -135,7 +137,19 @@ func (h *handler) doCommand() error {
 			newBulkString(h.cmd[1]),
 		)
 	case "set":
-		h.srv.store[h.cmd[1]] = value{data: h.cmd[2]}
+		var expiration time.Duration
+		if len(h.cmd) >= 4 {
+			if strings.ToLower(h.cmd[3]) == "px" {
+				expiration, err := time.ParseDuration(h.cmd[4] + "ms")
+				if err != nil {
+					return fmt.Errorf("failed to parse expiration duration: %w", err)
+				}
+			}
+		}
+		h.srv.store[h.cmd[1]] = value{
+			data:       h.cmd[2],
+			expiration: expiration,
+		}
 		return h.write(
 			newSimpleString("OK"),
 		)
